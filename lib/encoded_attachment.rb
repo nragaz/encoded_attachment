@@ -36,19 +36,21 @@ module EncodedAttachment
         options[:procs] ||= []
         if options[:include_files]
           options[:procs] << Proc.new { |options, record|
+            
             file_options = { :type => 'file'}
-            if send(name).file? && !(options[:send_urls])
-              file_options.merge!({:name => send("#{name}_file_name"), :"content-type" => send("#{name}_content_type")})
-              options[:builder].tag!(name, file_options) {
-                options[:builder].cdata! EncodedAttachment.encode(send(name))
-              }
-            elsif send(name).file? && options[:send_urls]
-              file_options.merge!({:type => :string})
-              options[:builder].tag!("#{name}_url", send(name).url(:original), file_options)
+            
+            if persisted? && send(name).file? && !(options[:send_urls])
+              file_options.merge!     :name => send("#{name}_file_name"), :"content-type" => send("#{name}_content_type")
+              options[:builder].tag!(name, file_options) { options[:builder].cdata! EncodedAttachment.encode(send(name)) }
+            elsif persisted? && send(name).file? && options[:send_urls]
+              file_options.merge!     :type => :string
+              options[:builder].tag!  "#{name}_url", send(name).url(:original), file_options
             else
-              file_options.merge!({:nil => true})
-              options[:builder].tag!(name, "", file_options)
+              # the file can't be included if the record is not persisted yet
+              file_options.merge!     :nil => true
+              options[:builder].tag!  name, "", file_options
             end
+            
           }
         end 
         send("to_xml_without_encoded_#{name}", options, &block)
