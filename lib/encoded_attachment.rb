@@ -44,6 +44,17 @@ module EncodedAttachment
   module ActiveResourceClassMethods
     # Let's you set a path to a file in an Active Resource model, and have this blast away whatever attributes already existed.
     def has_encoded_attachment(name)
+      schema do
+        string    "#{name}_file_name", "#{name}_content_type"
+        integer   "#{name}_file_size"
+        attribute "#{name}_updated_at", "string"
+        attribute name
+      end
+      
+      define_method "#{name}_updated_at" do
+        attributes["#{name}_updated_at"].to_time if attributes["#{name}_updated_at"].is_a?(String)
+      end
+      
       define_method "to_xml_with_encoded_#{name}" do |*args|
         options, block = args
         options ||= {}
