@@ -77,11 +77,11 @@ module EncodedAttachment
       end
       
       define_method "#{name}_changed=" do |bool|
-        instance_variable_set("@#{name}_changed", bool)
+        instance_variable_set(:"@#{name}_changed", bool)
       end
       
       define_method "#{name}_changed?" do
-        instance_variable_get("@#{name}_changed")
+        instance_variable_get(:"@#{name}_changed")
       end
       
       define_method "#{name}_path=" do |file_path|
