@@ -24,9 +24,9 @@ module EncodedAttachment
     def encode_attachment_in_xml(name, options={})
       options[:send_urls] = false unless options[:send_urls]
       
-      @attachment_handling ||= {}
-      @attachment_handling[name] = {}
-      @attachment_handling[name][:send_urls] = options[:send_urls]
+      @_attachment_handling ||= {}
+      @_attachment_handling[name] = {}
+      @_attachment_handling[name][:send_urls] = options[:send_urls]
       
       define_method "to_xml_with_encoded_#{name}" do |*args|
         # you can exclude file tags by using :include_files => false
@@ -41,11 +41,13 @@ module EncodedAttachment
             
             file_options = { :type => 'file'}
             
-            if persisted? && send(name).file? && !(send(:class).instance_variable_get("@attachment_handling")[name][:send_urls])
+            if !(new_record? || frozen?) && send(name).file? \
+               && !(send(:class).instance_variable_get("@_attachment_handling")[name][:send_urls])
               file_options.merge!     :name => send("#{name}_file_name"), :"content-type" => send("#{name}_content_type")
               options[:builder].tag!(name, file_options) { options[:builder].cdata! EncodedAttachment.encode(send(name)) }
               
-            elsif persisted? && send(name).file? && send(:class).instance_variable_get("@attachment_handling")[name][:send_urls]
+            elsif !(new_record? || frozen?) && send(name).file? \
+                  && send(:class).instance_variable_get("@_attachment_handling")[name][:send_urls]
               file_options.merge!     :type => :string
               options[:builder].tag!  "#{name}_url", send(name).url(:original), file_options
               
@@ -95,9 +97,11 @@ module EncodedAttachment
           if send("#{name}_changed?") || options[:include_files]
             file_options.merge!   :name => send("#{name}_file_name"), :"content-type" => send("#{name}_content_type")
             options[:builder].tag!(name, file_options) { options[:builder].cdata! EncodedAttachment.encode_io(send(name)) }
+            
           elsif new_record?
             file_options.merge!     :nil => true
             options[:builder].tag!  name, "", file_options
+            
           end
           
         }
