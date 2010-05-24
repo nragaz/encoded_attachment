@@ -95,8 +95,8 @@ module EncodedAttachment
       define_method "#{name}=" do |io|
         send("#{name}_changed=", true)
         if io.path
-          send("#{name}_file_name=", File.basename(file_path))
-          send("#{name}_content_type=", MIME::Types.type_for(File.basename(file_path)).first.content_type)
+          send("#{name}_file_name=", io.original_filename)
+          send("#{name}_content_type=", MIME::Types.type_for(io.original_filename).first.content_type)
         end
         send("attributes").send("[]=", "#{name}", io)
         send("attributes").delete("#{name}_file_size")
