@@ -4,7 +4,7 @@ This is the bestest and certainly the easiest way to handle file uploads/downloa
 
 Adds a class method called "encode_attachment_in_xml" to Active Record that can be used alongside Paperclip's "has_attached_file" to automatically generate useful and usable binary XML tags for the attachment's original file by wrapping to_xml.
 
-Adds a class method called "has_encoded_attachment" to Active Resource that generates a schema for the file's attributes and then embeds the file's binary content in to_xml IF the file has been changed or the record is new. (You can also force this using <pre>:include_files => true</pre>.) File accessors include file= and file_path=. MIME types are detected based on the file name.
+Adds a class method called "has_encoded_attachment" to Active Resource that generates a schema for the file's attributes and then embeds the file's binary content in to_xml IF the file has been changed or the record is new. (You can also force this using { :include_files => true } in your to_xml options hash.) File setters include file= and file_path=. MIME types are detected based on the file name.
 
 The Active Record methods will only be included if both Active Record and Paperclip are loaded. The Active Resource methods can be used independently (i.e. in a "client" project).
 
