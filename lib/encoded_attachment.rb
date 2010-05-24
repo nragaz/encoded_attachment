@@ -90,6 +90,7 @@ module EncodedAttachment
         send("#{name}_file_name=", File.basename(file_path))
         send("#{name}_content_type=", MIME::Types.type_for(File.basename(file_path)).first.content_type)
         send("attributes").delete("#{name}_file_size")
+        send("attributes").delete("#{name}_updated_at")
       end
       
       define_method "#{name}=" do |io|
@@ -100,6 +101,7 @@ module EncodedAttachment
         end
         send("attributes").send("[]=", "#{name}", io)
         send("attributes").delete("#{name}_file_size")
+        send("attributes").delete("#{name}_updated_at")
       end
       
       alias_method_chain :to_xml, :"encoded_#{name}"
