@@ -1,12 +1,12 @@
 h1. EncodedAttachment
 
-Requires Paperclip and Active Record.
-
-This is the bestest way to handle file uploads/downloads using Active Resource. Rather than trying to create a multipart request, it just embeds the file's binary data in the downloaded XML. You can also embed binary data into XML to submit using Active Resource.
+This is the bestest and certainly the easiest way to handle file uploads/downloads to Paperclip-using Active Record-backed resources using Active Resource. Rather than trying to create a multipart form submission, it just embeds the file's binary data in the Active Record model's to_xml. You can also embed binary data into XML to submit using Active Resource. These tags will automatically be parsed by Active Record and Active Resource to create files.
 
 Adds a class method called "encode_attachment_in_xml" to Active Record that can be used alongside Paperclip's "has_attached_file" to automatically generate useful and usable binary XML tags for the attachment's original file by wrapping to_xml.
 
-These tags will automatically be parsed by Active Record and Active Resource to create files.
+Adds a class method called "has_encoded_attachment" to Active Resource that generates a schema for the file's attributes and then embeds the file's binary content in to_xml IF the file has been changed or the record is new. (You can also force this using <pre>:include_files => true</pre>.) File accessors include file= and file_path=. MIME types are detected based on the file name.
+
+The Active Record methods will only be included if both Active Record and Paperclip are loaded. The Active Resource methods can be used independently (i.e. in a "client" project).
 
 
 h2. Example

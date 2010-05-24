@@ -20,21 +20,25 @@ module EncodedAttachment
   module ActiveRecordClassMethods
     def encode_attachment_in_xml(name)
       define_method "to_xml_with_encoded_#{name}" do |*args|
+        # you can exclude file tags by using :include_files => false
         options, block = args
         options ||= {}
+        options[:include_files] = true unless options.has_key?(:include_files)
         options[:procs] ||= []
-        options[:procs] << Proc.new { |options, record|
-          file_options = { :type => 'file'}
-          if send(name).file?
-            file_options.merge!({:name => send("#{name}_file_name"), :"content-type" => send("#{name}_content_type")})
-            options[:builder].tag!(name, file_options) {
-              options[:builder].cdata! EncodedAttachment.encode(send(name))
-            }
-          else    
-            file_options.merge!({:nil => true})
-            options[:builder].tag!(name, "", file_options)
-          end
-        }
+        if options[:include_files]
+          options[:procs] << Proc.new { |options, record|
+            file_options = { :type => 'file'}
+            if send(name).file?
+              file_options.merge!({:name => send("#{name}_file_name"), :"content-type" => send("#{name}_content_type")})
+              options[:builder].tag!(name, file_options) {
+                options[:builder].cdata! EncodedAttachment.encode(send(name))
+              }
+            else    
+              file_options.merge!({:nil => true})
+              options[:builder].tag!(name, "", file_options)
+            end
+          }
+        end 
         send("to_xml_without_encoded_#{name}", options, &block)
       end
       
@@ -57,6 +61,7 @@ module EncodedAttachment
       end
       
       define_method "to_xml_with_encoded_#{name}" do |*args|
+        # you can force file tag generation (i.e. even if the file has not changed) by using :include_files => true
         options, block = args
         options ||= {}
         options[:except] ||= []
