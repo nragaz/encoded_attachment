@@ -37,5 +37,3 @@ module EncodedAttachment
     end
   end
 end
-
-ActiveRecord::Base.send(:include, EncodedAttachment) if Object.const_defined?("ActiveRecord") && Object.const_defined?("Paperclip")
