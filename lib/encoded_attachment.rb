@@ -23,7 +23,8 @@ module EncodedAttachment
   module ActiveRecordClassMethods
     def encode_attachment_in_xml(name, options={})
       @attachment_handling ||= {}
-      @attachment_handling[name][:send_urls] = false unless options[:send_urls]
+      options[:send_urls] = false unless options[:send_urls]
+      @attachment_handling[name][:send_urls] = options[:send_urls]
       
       define_method "to_xml_with_encoded_#{name}" do |*args|
         # you can exclude file tags by using :include_files => false
@@ -34,12 +35,12 @@ module EncodedAttachment
         if options[:include_files]
           options[:procs] << Proc.new { |options, record|
             file_options = { :type => 'file'}
-            if send(name).file? && !(@attachment_handling[name][:send_urls])
+            if send(name).file? && !(options[:send_urls])
               file_options.merge!({:name => send("#{name}_file_name"), :"content-type" => send("#{name}_content_type")})
               options[:builder].tag!(name, file_options) {
                 options[:builder].cdata! EncodedAttachment.encode(send(name))
               }
-            elsif send(name).file? && @attachment_handling[name][:send_urls]
+            elsif send(name).file? && options[:send_urls]
               file_options.merge!({:type => :string})
               options[:builder].tag!("#{name}_url", send(name).url(:original), file_options)
             else
