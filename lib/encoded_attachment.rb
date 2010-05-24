@@ -48,7 +48,7 @@ module EncodedAttachment
         string    "#{name}_file_name", "#{name}_content_type"
         integer   "#{name}_file_size"
         attribute "#{name}_updated_at", "string"
-        attribute name
+        attribute name, "string"
       end
       
       define_method "#{name}_updated_at" do
@@ -58,10 +58,12 @@ module EncodedAttachment
       define_method "to_xml_with_encoded_#{name}" do |*args|
         options, block = args
         options ||= {}
+        options[:except] ||= []
+        options[:except] = (options[:except] + [:"#{name}", :"#{name}_updated_at", :"#{name}_file_size"]).uniq
         options[:procs] ||= []
         options[:procs] << Proc.new { |options, record|
           file_options = { :type => 'file'}
-          if send("#{name}_path?")
+          if send("#{name}_changed?")
             file_options.merge!({:name => send("#{name}_file_name"), :"content-type" => send("#{name}_content_type")})
             options[:builder].tag!(name, file_options) {
               options[:builder].cdata! EncodedAttachment.encode_io(send(name))
@@ -74,7 +76,16 @@ module EncodedAttachment
         send("to_xml_without_encoded_#{name}", options, &block)
       end
       
+      define_method "#{name}_changed=" do |bool|
+        instance_variable_set("@#{name}_changed", bool)
+      end
+      
+      define_method "#{name}_changed?" do
+        instance_variable_get("@#{name}_changed")
+      end
+      
       define_method "#{name}_path=" do |file_path|
+        send("#{name}_changed=", true)
         send("#{name}=", File.open(file_path))
         send("#{name}_file_name=", File.basename(file_path))
         send("#{name}_content_type=", MIME::Types.type_for(File.basename(file_path)).first.content_type)
@@ -82,6 +93,7 @@ module EncodedAttachment
       end
       
       define_method "#{name}=" do |io|
+        send("#{name}_changed=", true)
         if io.path
           send("#{name}_file_name=", File.basename(file_path))
           send("#{name}_content_type=", MIME::Types.type_for(File.basename(file_path)).first.content_type)
