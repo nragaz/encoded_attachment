@@ -105,6 +105,12 @@ module EncodedAttachment
         send("attributes").delete("#{name}_updated_at")
       end
       
+      define_method "save_#{name}_as" do |*args|
+        path, overwrite = args
+        overwrite = true if overwrite.nil?
+        File.open(path, 'w') { |f| f << send(name).read; send(name).pos = 0 } unless !(overwrite) && File.exist?(path)
+      end
+      
       alias_method_chain :to_xml, :"encoded_#{name}"
     end
     

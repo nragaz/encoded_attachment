@@ -11,6 +11,8 @@ These tags will automatically be parsed by Active Record and Active Resource to 
 
 h2. Example
 
+In Active Record:
+
 <pre>
 class MyModel < ActiveRecord::Base
     has_attached_file        :pdf
@@ -19,14 +21,24 @@ end
 
 my_model = MyModel.create(:pdf => File.open('example.pdf'))
 my_model.to_xml => '<my-model>\n<pdf type="file" name="example.pdf" content-type="application/pdf">[binary data]</pdf>\n</my-model>'
+</pre>
 
+In Active Resource:
+
+<pre>
 class MyModelResource < ActiveResource::Base
     self.element_name = "my_model"
+    
+    has_encoded_attachment :pdf
 end
 
 my_model_resource = MyModelResource.new.from_xml(my_model.to_xml)
 my_model_resource.pdf # => <StringIO> containing binary data
-File.open('example-downloaded.pdf', 'w+') { |f| f << my_model_resource.pdf.read } # now you can open the file
+my_model_resource.save_pdf_as("my_downloaded_file.pdf")
+
+my_model_resource.pdf = File.open('example-downloaded.pdf')
+my_model_resource.pdf_file_name # => "example_downloaded.pdf"
+my_model_resource.pdf_content_type # => "application/pdf"
 </pre>
 
 
