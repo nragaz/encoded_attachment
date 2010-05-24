@@ -61,10 +61,11 @@ module EncodedAttachment
         options ||= {}
         options[:except] ||= []
         options[:except] = (options[:except] + [:"#{name}", :"#{name}_updated_at", :"#{name}_file_size"]).uniq
+        options[:except] = (options[:except] + [:"#{name}_file_name", :"#{name}_content_type"]).uniq unless send("#{name}_changed?")
         options[:procs] ||= []
         options[:procs] << Proc.new { |options, record|
           file_options = { :type => 'file'}
-          if send("#{name}_changed?")
+          if send("#{name}_changed?") || options[:include_files]
             file_options.merge!({:name => send("#{name}_file_name"), :"content-type" => send("#{name}_content_type")})
             options[:builder].tag!(name, file_options) {
               options[:builder].cdata! EncodedAttachment.encode_io(send(name))
@@ -108,7 +109,12 @@ module EncodedAttachment
       define_method "save_#{name}_as" do |*args|
         path, overwrite = args
         overwrite = true if overwrite.nil?
-        File.open(path, 'w') { |f| f << send(name).read; send(name).pos = 0 } unless !(overwrite) && File.exist?(path)
+        unless !(overwrite) && File.exist?(path)
+          send(name).pos = 0
+          File.open(path, 'w') { |f| f << send(name).read }
+        else
+          return false
+        end
       end
       
       alias_method_chain :to_xml, :"encoded_#{name}"
