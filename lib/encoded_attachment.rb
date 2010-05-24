@@ -8,6 +8,7 @@ module EncodedAttachment
     
     def encode_io(io)
       Base64.encode64(io.read)
+      io.pos = 0
     end
     
     def included(base)
@@ -81,7 +82,7 @@ module EncodedAttachment
       end
       
       define_method "#{name}_changed?" do
-        instance_variable_get(:"@#{name}_changed")
+        instance_variable_get(:"@#{name}_changed") || false
       end
       
       define_method "#{name}_path=" do |file_path|
