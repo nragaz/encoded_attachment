@@ -14,14 +14,17 @@ module EncodedAttachment
     def included(base)
       base.extend ActiveRecordClassMethods if base.to_s == "ActiveRecord::Base"
       if base.to_s == "ActiveResource::Base"
-        base::Connection.include ActiveResourceConnectionMethods
         base.extend ActiveResourceClassMethods
+        ActiveResource::Connection.send :include, ActiveResourceConnectionMethods
       end
     end
   end
   
   module ActiveRecordClassMethods
-    def encode_attachment_in_xml(name)
+    def encode_attachment_in_xml(name, options={})
+      @attachment_handling ||= {}
+      @attachment_handling[name][:send_urls] = false unless options[:send_urls]
+      
       define_method "to_xml_with_encoded_#{name}" do |*args|
         # you can exclude file tags by using :include_files => false
         options, block = args
@@ -31,12 +34,15 @@ module EncodedAttachment
         if options[:include_files]
           options[:procs] << Proc.new { |options, record|
             file_options = { :type => 'file'}
-            if send(name).file?
+            if send(name).file? && !(@attachment_handling[name][:send_urls])
               file_options.merge!({:name => send("#{name}_file_name"), :"content-type" => send("#{name}_content_type")})
               options[:builder].tag!(name, file_options) {
                 options[:builder].cdata! EncodedAttachment.encode(send(name))
               }
-            else    
+            elsif send(name).file? && @attachment_handling[name][:send_urls]
+              file_options.merge!({:type => :string})
+              options[:builder].tag!("#{name}_url", send(name).url(:original), file_options)
+            else
               file_options.merge!({:nil => true})
               options[:builder].tag!(name, "", file_options)
             end
@@ -83,7 +89,7 @@ module EncodedAttachment
             options[:builder].tag!(name, "", file_options)
           end
         }
-        send("to_xml_without_encoded_#{name}", options, &block)
+        send "to_xml_without_encoded_#{name}", options, &block
       end
       
       define_method "#{name}_changed=" do |bool|
@@ -95,23 +101,27 @@ module EncodedAttachment
       end
       
       define_method "#{name}_path=" do |file_path|
-        send("#{name}_changed=", true)
-        send("#{name}=", File.open(file_path))
-        send("#{name}_file_name=", File.basename(file_path))
-        send("#{name}_content_type=", MIME::Types.type_for(File.basename(file_path)).first.content_type)
-        send("attributes").delete("#{name}_file_size")
-        send("attributes").delete("#{name}_updated_at")
+        send "#{name}=",              File.open(file_path)
+        send "#{name}_file_name=",    File.basename(file_path)
+        send "#{name}_content_type=", MIME::Types.type_for(File.basename(file_path)).first.content_type
+      end
+      
+      define_method "#{name}_url=" do |file_url|
+        url = URI.parse(file_url)
+        send "#{name}=",              StringIO.new(send(:connection).get_plain(url.path).read_body)
+        send "#{name}_file_name=",    File.basename(url.path)
+        send "#{name}_content_type=", MIME::Types.type_for(File.basename(url.path)).first.content_type
       end
       
       define_method "#{name}=" do |io|
-        send("#{name}_changed=", true)
+        send "#{name}_changed=", true
         if io.path
-          send("#{name}_file_name=", io.original_filename)
-          send("#{name}_content_type=", MIME::Types.type_for(io.original_filename).first.content_type)
+          send "#{name}_file_name=",    io.original_filename
+          send "#{name}_content_type=", MIME::Types.type_for(io.original_filename).first.content_type
         end
-        send("attributes").send("[]=", "#{name}", io)
-        send("attributes").delete("#{name}_file_size")
-        send("attributes").delete("#{name}_updated_at")
+        send("attributes").send   "[]=", "#{name}", io
+        send("attributes").delete "#{name}_file_size"
+        send("attributes").delete "#{name}_updated_at"
       end
       
       define_method "save_#{name}_as" do |*args|
