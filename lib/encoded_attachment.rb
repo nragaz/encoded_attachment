@@ -7,8 +7,8 @@ module EncodedAttachment
     end
     
     def encode_io(io)
-      Base64.encode64(io.read)
       io.pos = 0
+      Base64.encode64(io.read)
     end
     
     def included(base)
