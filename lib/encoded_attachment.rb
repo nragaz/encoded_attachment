@@ -13,7 +13,10 @@ module EncodedAttachment
     
     def included(base)
       base.extend ActiveRecordClassMethods if base.to_s == "ActiveRecord::Base"
-      base.extend ActiveResourceClassMethods if base.to_s == "ActiveResource::Base"
+      if base.to_s == "ActiveResource::Base"
+        base::Connection.include ActiveResourceConnectionMethods
+        base.extend ActiveResourceClassMethods
+      end
     end
   end
   
@@ -125,5 +128,11 @@ module EncodedAttachment
       alias_method_chain :to_xml, :"encoded_#{name}"
     end
     
+  end
+  
+  module ActiveResourceConnectionMethods
+    def get_plain(path, headers = {})
+      with_auth { request(:get, path, build_request_headers(headers, :get, self.site.merge(path))) }
+    end
   end
 end
