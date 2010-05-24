@@ -21,15 +21,23 @@ module EncodedAttachment
   end
   
   module ActiveRecordClassMethods
-    def encode_attachment_in_xml(name, options={})
-      options[:send_urls] = false unless options[:send_urls]
+    def encode_attachment_in_xml(name, attachment_options={})
+      options[:send_urls] = false unless attachment_options[:send_urls]
       
       @_attachment_handling ||= {}
       @_attachment_handling[name] = {}
-      @_attachment_handling[name][:send_urls] = options[:send_urls]
+      @_attachment_handling[name][:send_urls] = attachment_options[:send_urls]
+      
+      if attachment_options[:send_urls]
+        # TODO: handle URLs in ActiveRecord???
+        define_method "#{name}_url=" do |file_url|
+          nil
+        end
+      end
       
       define_method "to_xml_with_encoded_#{name}" do |*args|
         # you can exclude file tags by using :include_files => false
+        # if send_urls is set, force file encoding using :encode => true
         options, block = args
         
         options ||= {}
@@ -42,7 +50,7 @@ module EncodedAttachment
             file_options = { :type => 'file'}
             
             if !(new_record? || frozen?) && send(name).file? \
-               && !(send(:class).instance_variable_get("@_attachment_handling")[name][:send_urls])
+               && (!(send(:class).instance_variable_get("@_attachment_handling")[name][:send_urls]) || options[:encode])
               file_options.merge!     :name => send("#{name}_file_name"), :"content-type" => send("#{name}_content_type")
               options[:builder].tag!(name, file_options) { options[:builder].cdata! EncodedAttachment.encode(send(name)) }
               
