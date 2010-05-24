@@ -41,11 +41,11 @@ module EncodedAttachment
             
             file_options = { :type => 'file'}
             
-            if persisted? && send(name).file? && !(class.instance_variable_get("@attachment_handling")[name][:send_urls])
+            if persisted? && send(name).file? && !(send(:class).instance_variable_get("@attachment_handling")[name][:send_urls])
               file_options.merge!     :name => send("#{name}_file_name"), :"content-type" => send("#{name}_content_type")
               options[:builder].tag!(name, file_options) { options[:builder].cdata! EncodedAttachment.encode(send(name)) }
               
-            elsif persisted? && send(name).file? && class.instance_variable_get("@attachment_handling")[name][:send_urls]
+            elsif persisted? && send(name).file? && send(:class).instance_variable_get("@attachment_handling")[name][:send_urls]
               file_options.merge!     :type => :string
               options[:builder].tag!  "#{name}_url", send(name).url(:original), file_options
               
