@@ -3,7 +3,7 @@ module EncodedAttachment
   
   class << self
     def encode(attachment, style = :original)
-      encode_io(File.open(attachment.path(style))
+      encode_io( File.open(attachment.path(style)) )
     end
     
     def encode_io(io)
