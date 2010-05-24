@@ -6,7 +6,7 @@ This is the bestest way to handle file uploads/downloads using Active Resource. 
 
 Adds a class method called "encode_attachment_in_xml" to Active Record that can be used alongside Paperclip's "has_attached_file" to automatically generate useful and usable binary XML tags for the attachment's original file by wrapping to_xml.
 
-These tags will automatically be parsed by Active Record and Active Resource to create files. Be sure to also  set #{attachment_name}_content_type and #{attachment_name}_file_name in your Active Resource so that Paperclip handles saving the file correctly.
+These tags will automatically be parsed by Active Record and Active Resource to create files.
 
 
 h2. Example
