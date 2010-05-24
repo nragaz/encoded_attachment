@@ -31,22 +31,26 @@ module EncodedAttachment
       define_method "to_xml_with_encoded_#{name}" do |*args|
         # you can exclude file tags by using :include_files => false
         options, block = args
+        
         options ||= {}
         options[:include_files] = true unless options.has_key?(:include_files)
         options[:procs] ||= []
+        
         if options[:include_files]
           options[:procs] << Proc.new { |options, record|
             
             file_options = { :type => 'file'}
             
-            if persisted? && send(name).file? && !(options[:send_urls])
+            if persisted? && send(name).file? && !(class.instance_variable_get("@attachment_handling")[name][:send_urls])
               file_options.merge!     :name => send("#{name}_file_name"), :"content-type" => send("#{name}_content_type")
               options[:builder].tag!(name, file_options) { options[:builder].cdata! EncodedAttachment.encode(send(name)) }
-            elsif persisted? && send(name).file? && options[:send_urls]
+              
+            elsif persisted? && send(name).file? && class.instance_variable_get("@attachment_handling")[name][:send_urls]
               file_options.merge!     :type => :string
               options[:builder].tag!  "#{name}_url", send(name).url(:original), file_options
+              
             else
-              # the file can't be included if the record is not persisted yet
+              # the file can't be included if the record is not persisted yet because of how Paperclip works
               file_options.merge!     :nil => true
               options[:builder].tag!  name, "", file_options
             end
@@ -77,23 +81,27 @@ module EncodedAttachment
       define_method "to_xml_with_encoded_#{name}" do |*args|
         # you can force file tag generation (i.e. even if the file has not changed) by using :include_files => true
         options, block = args
+        
         options ||= {}
         options[:except] ||= []
         options[:except] = (options[:except] + [:"#{name}", :"#{name}_updated_at", :"#{name}_file_size"]).uniq
         options[:except] = (options[:except] + [:"#{name}_file_name", :"#{name}_content_type"]).uniq unless send("#{name}_changed?")
         options[:procs] ||= []
+        
         options[:procs] << Proc.new { |options, record|
+          
           file_options = { :type => 'file'}
+          
           if send("#{name}_changed?") || options[:include_files]
-            file_options.merge!({:name => send("#{name}_file_name"), :"content-type" => send("#{name}_content_type")})
-            options[:builder].tag!(name, file_options) {
-              options[:builder].cdata! EncodedAttachment.encode_io(send(name))
-            }
-          elsif send("new_record?")   
-            file_options.merge!({:nil => true})
-            options[:builder].tag!(name, "", file_options)
+            file_options.merge!   :name => send("#{name}_file_name"), :"content-type" => send("#{name}_content_type")
+            options[:builder].tag!(name, file_options) { options[:builder].cdata! EncodedAttachment.encode_io(send(name)) }
+          elsif new_record?
+            file_options.merge!     :nil => true
+            options[:builder].tag!  name, "", file_options
           end
+          
         }
+        
         send "to_xml_without_encoded_#{name}", options, &block
       end
       
