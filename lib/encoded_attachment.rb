@@ -68,7 +68,7 @@ module EncodedAttachment
             options[:builder].tag!(name, file_options) {
               options[:builder].cdata! EncodedAttachment.encode_io(send(name))
             }
-          else    
+          elsif send("new_record?")   
             file_options.merge!({:nil => true})
             options[:builder].tag!(name, "", file_options)
           end
