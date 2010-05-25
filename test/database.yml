@@ -1,0 +1,19 @@
+sqlite3:
+  adapter: sqlite3
+  database: test/db/test.sqlite3
+  pool: 5
+  timeout: 5000
+
+postgresql:
+  adapter: postgresql
+  username: postgres
+  password: postgres
+  database: encoded_attachment_plugin_test
+  min_messages: ERROR
+
+mysql:
+  adapter: mysql
+  host: localhost
+  username: root
+  password: 
+  database: encoded_attachment_plugin_test

@@ -22,7 +22,7 @@ module EncodedAttachment
   
   module ActiveRecordClassMethods
     def encode_attachment_in_xml(name, attachment_options={})
-      options[:send_urls] = false unless attachment_options[:send_urls]
+      attachment_options[:send_urls] = false unless attachment_options[:send_urls]
       
       @_attachment_handling ||= {}
       @_attachment_handling[name] = {}
