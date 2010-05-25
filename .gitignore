@@ -1,3 +1,4 @@
+.bundle
 .DS_Store
 test/db/*.*
 test/log/*.*
