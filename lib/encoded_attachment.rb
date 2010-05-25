@@ -27,46 +27,47 @@ module EncodedAttachment
       @_attachment_handling ||= {}
       @_attachment_handling[name] = {}
       @_attachment_handling[name][:send_urls] = attachment_options[:send_urls]
+      @_attachment_handling[name][:root_url] = attachment_options[:root_url] || nil
       
       if attachment_options[:send_urls]
-        # TODO: handle URLs in ActiveRecord???
+        # Placeholder method to avoid MethodMissing exceptions on Model.from_xml(Model.to_xml)
         define_method "#{name}_url=" do |file_url|
           nil
         end
       end
       
       define_method "to_xml_with_encoded_#{name}" do |*args|
-        # you can exclude file tags by using :include_files => false
-        # if send_urls is set, force file encoding using :encode => true
+        # You can exclude file tags completely by using :include_files => false
+        # If :send_urls => true, force file encoding using :encode => true
         options, block = args
         
         options ||= {}
         options[:include_files] = true unless options.has_key?(:include_files)
+        options[:encode] = false unless options.has_key?(:encode)
         options[:procs] ||= []
         
         if options[:include_files]
           options[:procs] << Proc.new { |options, record|
-            
             file_options = { :type => 'file'}
-            
             if !(new_record? || frozen?) && send(name).file? \
                && (!(send(:class).instance_variable_get("@_attachment_handling")[name][:send_urls]) || options[:encode])
-              file_options.merge!     :name => send("#{name}_file_name"), :"content-type" => send("#{name}_content_type")
+              file_options.merge! :name => send("#{name}_file_name"), :"content-type" => send("#{name}_content_type")
               options[:builder].tag!(name, file_options) { options[:builder].cdata! EncodedAttachment.encode(send(name)) }
-              
             elsif !(new_record? || frozen?) && send(name).file? \
                   && send(:class).instance_variable_get("@_attachment_handling")[name][:send_urls]
-              file_options.merge!     :type => :string
-              options[:builder].tag!  "#{name}_url", send(name).url(:original), file_options
-              
+              file_options.merge! :type => :string
+              root_url = send(:class).instance_variable_get("@_attachment_handling")[name][:root_url]
+              url_path = send(name).url(:original)
+              url = root_url ? URI.join(root_url, url_path) : url_path
+              options[:builder].tag!  "#{name}_url", url, file_options
             else
               # the file can't be included if the record is not persisted yet because of how Paperclip works
-              file_options.merge!     :nil => true
-              options[:builder].tag!  name, "", file_options
+              file_options.merge! :nil => true
+              options[:builder].tag! name, "", file_options
             end
-            
           }
-        end 
+        end
+        
         send("to_xml_without_encoded_#{name}", options, &block)
       end
       
@@ -75,7 +76,6 @@ module EncodedAttachment
   end
   
   module ActiveResourceClassMethods
-    # Let's you set a path to a file in an Active Resource model, and have this blast away whatever attributes already existed.
     def has_encoded_attachment(name)
       schema do
         string    "#{name}_file_name", "#{name}_content_type"
@@ -89,7 +89,9 @@ module EncodedAttachment
       end
       
       define_method "to_xml_with_encoded_#{name}" do |*args|
-        # you can force file tag generation (i.e. even if the file has not changed) by using :include_files => true
+        # Normally, the file's XML is only included if the file has been changed in the resource
+        # using file= or file_path= or file_url=
+        # You can force file tag generation (i.e. even if the file has not changed) by using to_xml(:include_files => true)
         options, block = args
         
         options ||= {}
@@ -99,19 +101,14 @@ module EncodedAttachment
         options[:procs] ||= []
         
         options[:procs] << Proc.new { |options, record|
-          
           file_options = { :type => 'file'}
-          
           if send("#{name}_changed?") || options[:include_files]
             file_options.merge!   :name => send("#{name}_file_name"), :"content-type" => send("#{name}_content_type")
             options[:builder].tag!(name, file_options) { options[:builder].cdata! EncodedAttachment.encode_io(send(name)) }
-            
           elsif new_record?
             file_options.merge!     :nil => true
             options[:builder].tag!  name, "", file_options
-            
           end
-          
         }
         
         send "to_xml_without_encoded_#{name}", options, &block
@@ -133,20 +130,21 @@ module EncodedAttachment
       
       define_method "#{name}_url=" do |file_url|
         url = URI.parse(file_url)
-        send "#{name}=",              StringIO.new(send(:connection).get_plain(url.path).read_body)
+        send "#{name}=",              StringIO.new(send(:connection).get_attachment(url.path).read_body)
         send "#{name}_file_name=",    File.basename(url.path)
         send "#{name}_content_type=", MIME::Types.type_for(File.basename(url.path)).first.content_type
       end
       
       define_method "#{name}=" do |io|
-        send "#{name}_changed=", true
+        send "#{name}_changed=", true if new_record? || attributes[name].nil?
         if io.path
           send "#{name}_file_name=",    io.original_filename
           send "#{name}_content_type=", MIME::Types.type_for(io.original_filename).first.content_type
         end
-        send("attributes").send   "[]=", "#{name}", io
-        send("attributes").delete "#{name}_file_size"
-        send("attributes").delete "#{name}_updated_at"
+        attributes[name] = io
+        attributes.delete "#{name}_url"
+        attributes.delete "#{name}_file_size"
+        attributes.delete "#{name}_updated_at"
       end
       
       define_method "save_#{name}_as" do |*args|
@@ -166,7 +164,7 @@ module EncodedAttachment
   end
   
   module ActiveResourceConnectionMethods
-    def get_plain(path, headers = {})
+    def get_attachment(path, headers = {})
       with_auth { request(:get, path, build_request_headers(headers, :get, self.site.merge(path))) }
     end
   end
