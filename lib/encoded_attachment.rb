@@ -42,11 +42,11 @@ module EncodedAttachment
         options, block = args
         
         options ||= {}
-        options[:include_files] = true unless options.has_key?(:include_files)
+        options[:include_attachments] = true unless options.has_key?(:include_attachments)
         options[:encode] = false unless options.has_key?(:encode)
         options[:procs] ||= []
         
-        if options[:include_files]
+        if options[:include_attachments]
           options[:procs] << Proc.new { |options, record|
             file_options = { :type => 'file'}
             if !(new_record? || frozen?) && send(name).file? \
