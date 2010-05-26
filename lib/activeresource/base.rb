@@ -29,7 +29,7 @@ module EncodedAttachment
           if send("#{name}_changed?") || options[:include_files] || (new_record? && !(send("#{name}").nil?))
             file_options.merge!   :name => send("#{name}_file_name"), :"content-type" => send("#{name}_content_type")
             options[:builder].tag!(name, file_options) { options[:builder].cdata! EncodedAttachment.encode_io(send(name)) }
-          else
+          elsif send("#{name}_changed?") || options[:include_files]
             file_options.merge!     :nil => true
             options[:builder].tag!  name, "", file_options
           end

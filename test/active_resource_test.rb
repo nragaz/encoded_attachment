@@ -175,7 +175,7 @@ class ActiveResourceConnectionMethods < ActiveSupport::TestCase
            "Should receive avatar_remote image request"
   end
   
-  test "receives and parses XML" do
+  test "should receive and parse XML, including a remote attachment" do
     @user = Api::User.find(@user_record.id)
     
     assert_equal 'kitten.jpg', @user.avatar_file_name,    'Should set name'
@@ -187,5 +187,90 @@ class ActiveResourceConnectionMethods < ActiveSupport::TestCase
     assert_equal 'image/jpeg', @user.avatar_remote_content_type, 'Should set remote content type'
     assert       @user.avatar_remote.is_a?(StringIO),            'Should set remote attachment to StringIO'
     assert       !(@user.avatar_remote_changed?),                'Remote should not be changed?'
+  end
+  
+  test "should POST a new user" do
+    @user = Api::User.new(:name => 'John Doe')
+    @user.save
+    assert ActiveResource::HttpMock.requests.include?(ActiveResource::Request.new(:post, "/users.xml"))
+  end
+  
+  test "should PUT an update" do
+    @user = Api::User.find(@user_record.id)
+    @user.name = 'Jane Doe'
+    @user.save
+    assert ActiveResource::HttpMock.requests.include?(ActiveResource::Request.new(:put, "/users/#{@user_record.id}.xml"))
+  end
+  
+  test "should DELETE when destroyed" do
+    @user = Api::User.find(@user_record.id)
+    @user.destroy
+    assert ActiveResource::HttpMock.requests.include?(ActiveResource::Request.new(:delete, "/users/#{@user_record.id}.xml")),
+           "Should have sent a DELETE request"
+  end
+end
+
+class ActiveResourceXMLGenerationTest < ActiveSupport::TestCase
+  def setup
+    @user_record = User.create(:name => 'John Doe', :avatar => File.open("test/fixtures/tapir.jpg"),
+                               :avatar_remote => File.open('test/fixtures/kitten.jpg'))
+    ActiveResource::HttpMock.respond_to do |mock|
+       mock.get    "/users/#{@user_record.id}.xml", {}, @user_record.to_xml
+       mock.post   "/users.xml", {}, @user_record.to_xml, 201, "Location" => "/people/1.xml"
+       mock.put    "/users/#{@user_record.id}.xml", {}, nil, 204
+       mock.delete "/users/#{@user_record.id}.xml", {}, nil, 200
+       mock.get    "/users/#{@user_record.id}.jpg", { 'Accept' => 'image/jpeg' }, File.read('test/fixtures/tapir.jpg'),
+                   200, "Content-Type" => "image/jpeg"
+    end
+    @user = Api::User.find(@user_record.id)
+  end
+  
+  def teardown
+    User.destroy_all
+  end
+  
+  test "should not generate XML tags because the files haven't changed" do
+    user_xml = Hash.from_xml(@user.to_xml)['user']
+    assert !(user_xml.has_key?('avatar')),         'Should not have avatar tag'
+    assert !(user_xml.has_key?('avatar_remote')),  'Should not have avatar_remote tag'
+  end
+  
+  test "should generate XML tags when the files have changed" do
+    @user.avatar_path = 'test/fixtures/kitten.jpg'
+    @user.avatar_remote = File.open("test/fixtures/tapir.jpg")
+    user_xml = Hash.from_xml(@user.to_xml)['user']
+    assert user_xml.has_key?('avatar'),         'Should have avatar tag'
+    assert user_xml.has_key?('avatar_remote'),  'Should have avatar_remote tag'
+    
+    assert user_xml['avatar'].is_a?(StringIO),  'Should be a StringIO'
+    assert_equal 'kitten.jpg', user_xml['avatar'].original_filename, 'Should have the original filename'
+  end
+  
+  test "should not generate XML tags when user is new" do
+    user_xml = Hash.from_xml(Api::User.new(:name => 'Jane Doe').to_xml)['user']
+    assert !(user_xml.has_key?('avatar')),         'Should not have avatar tag'
+    assert !(user_xml.has_key?('avatar_remote')),  'Should not have avatar_remote tag'
+  end
+  
+  test "should generate XML tags when user is new and files have been assigned" do
+    user_xml = Hash.from_xml(Api::User.new(:name => 'Jane Doe', :avatar => File.open("test/fixtures/tapir.jpg"),
+                                           :avatar_remote => File.open('test/fixtures/kitten.jpg')).to_xml)['user']
+    assert user_xml.has_key?('avatar'),         'Should have avatar tag'
+    assert user_xml.has_key?('avatar_remote'),  'Should have avatar_remote tag'
+  end
+  
+  test "should create a User from XML" do
+    @new_user = User.new.from_xml Api::User.new(:name => 'Jane Doe', :avatar => File.open("test/fixtures/tapir.jpg"),
+                                                :avatar_remote => File.open('test/fixtures/kitten.jpg')).to_xml
+    assert @new_user.save,                                       'User should save'
+    assert @new_user.avatar.file?,                               'User should have avatar file'
+    assert File.exist?(@new_user.avatar_remote.path(:original)), 'User\'s avatar remote file should exist'
+  end
+  
+  test "should update a User's files from XML" do
+    @user.avatar = File.open('test/fixtures/kitten.jpg')
+    @user_record.update_attributes Hash.from_xml(@user.to_xml)['user']
+    assert_equal  'kitten.jpg', @user_record.avatar_file_name,      'File name updated'
+    assert        File.exist?(@user_record.avatar.path(:original)), 'File saved'
   end
 end
