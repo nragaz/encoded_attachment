@@ -75,62 +75,62 @@ class ActiveSupportWithURLAttachmentsTest < ActiveSupport::TestCase
   load_schema
   
   setup do
-    @user = User.create(:name => 'John Doe', :avatar_url => File.open("test/fixtures/kitten.jpg"))
+    @user = User.create(:name => 'John Doe', :avatar_remote => File.open("test/fixtures/kitten.jpg"))
   end
   
   teardown do
     User.destroy_all
   end
 
-  test "should create avatar_url_url tags" do
-    assert Hash.from_xml(@user.to_xml)['user'].has_key?('avatar_url_url')
+  test "should create avatar_remote_url tags" do
+    assert Hash.from_xml(@user.to_xml)['user'].has_key?('avatar_remote_url')
   end
   
-  test "should not create avatar_url_url tags with :include_attachments => false" do
-    assert !(Hash.from_xml(@user.to_xml(:include_attachments => false))['user'].has_key?('avatar_url_url'))
+  test "should not create avatar_remote_url tags with :include_attachments => false" do
+    assert !(Hash.from_xml(@user.to_xml(:include_attachments => false))['user'].has_key?('avatar_remote_url'))
   end
   
-  test "should not create avatar_url tags" do
-    assert !(Hash.from_xml(@user.to_xml)['user'].has_key?('avatar_url'))
+  test "should not create avatar_remote tags" do
+    assert !(Hash.from_xml(@user.to_xml)['user'].has_key?('avatar_remote'))
   end
   
-  test "avatar_url_url tags should be nil if the user is new" do
-    @new_user = User.new(:name => 'John Doe', :avatar_url => File.open("test/fixtures/kitten.jpg"))
-    assert Hash.from_xml(@new_user.to_xml)['user']['avatar_url_url'].nil?,    'Should have nil URL tag'
-    assert !(Hash.from_xml(@new_user.to_xml)['user'].has_key?('avatar_url')), 'Should not have file tag'
+  test "avatar_remote_url tags should be nil if the user is new" do
+    @new_user = User.new(:name => 'John Doe', :avatar_remote => File.open("test/fixtures/kitten.jpg"))
+    assert Hash.from_xml(@new_user.to_xml)['user']['avatar_remote_url'].nil?,    'Should have nil URL tag'
+    assert !(Hash.from_xml(@new_user.to_xml)['user'].has_key?('avatar_remote')), 'Should not have file tag'
   end
   
-  test "avatar_url_url tags should be nil if the user is destroyed" do
+  test "avatar_remote_url tags should be nil if the user is destroyed" do
     @user.destroy
-    assert Hash.from_xml(@user.to_xml)['user']['avatar_url_url'].nil?,        'Should have nil URL tag'
-    assert !(Hash.from_xml(@user.to_xml)['user'].has_key?('avatar_url')),     'Should not have file tag'
+    assert Hash.from_xml(@user.to_xml)['user']['avatar_remote_url'].nil?,        'Should have nil URL tag'
+    assert !(Hash.from_xml(@user.to_xml)['user'].has_key?('avatar_remote')),     'Should not have file tag'
   end
   
-  test "avatar_url_url tag should point to the image's URL" do
-    assert_equal "http://localhost/users/#{@user.id}.jpg", Hash.from_xml(@user.to_xml)['user']['avatar_url_url']
+  test "avatar_remote_url tag should point to the image's URL" do
+    assert_equal "http://localhost/users/#{@user.id}.jpg", Hash.from_xml(@user.to_xml)['user']['avatar_remote_url']
   end
   
-  test "avatar_url_url tag should not raise exception when applied to another ActiveRecord" do
+  test "avatar_remote_url tag should not raise exception when applied to another ActiveRecord" do
     assert_nothing_raised { @new_user = User.new.from_xml(@user.to_xml) }
   end
   
-  test "avatar_url_url tag should not set the file when applied to another ActiveRecord" do
+  test "avatar_remote_url tag should not set the file when applied to another ActiveRecord" do
     @new_user = User.new.from_xml(@user.to_xml)
-    assert !(@new_user.avatar_url.file?)
+    assert !(@new_user.avatar_remote.file?)
   end
   
-  test "avatar_url_url tag should not be generated with :encode_attachments => true" do
-    assert !(Hash.from_xml(@user.to_xml(:encode_attachments => true))['user'].has_key?('avatar_url_url'))
+  test "avatar_remote_url tag should not be generated with :encode_attachments => true" do
+    assert !(Hash.from_xml(@user.to_xml(:encode_attachments => true))['user'].has_key?('avatar_remote_url'))
   end
   
-  test "avatar_url file tag should be generated with :encode_attachments => true" do
-    assert Hash.from_xml(@user.to_xml(:encode_attachments => true))['user'].has_key?('avatar_url')
+  test "avatar_remote file tag should be generated with :encode_attachments => true" do
+    assert Hash.from_xml(@user.to_xml(:encode_attachments => true))['user'].has_key?('avatar_remote')
   end
   
-  test "avatar_url file tag should include all necessary attributes" do
+  test "avatar_remote file tag should include all necessary attributes" do
     user_xml = Hash.from_xml(@user.to_xml(:encode_attachments => true))['user']
-    assert        user_xml.has_key?('avatar_url')
-    assert_equal  'kitten.jpg', user_xml['avatar_url'].original_filename, 'Filename should be set'
-    assert_equal  'image/jpeg', user_xml['avatar_url'].content_type,      'Content type should be set'
+    assert        user_xml.has_key?('avatar_remote')
+    assert_equal  'kitten.jpg', user_xml['avatar_remote'].original_filename, 'Filename should be set'
+    assert_equal  'image/jpeg', user_xml['avatar_remote'].content_type,      'Content type should be set'
   end
 end

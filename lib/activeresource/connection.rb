@@ -1,7 +1,8 @@
 module EncodedAttachment
   module ActiveResourceConnectionMethods
     def get_attachment(path, headers = {})
-      with_auth { request(:get, path, build_request_headers(headers, :get, self.site.merge(path))) }
+      request_headers = build_request_headers(headers, :get, self.site.merge(path))
+      with_auth { request(:get, path, request_headers) }
     end
   end
 end

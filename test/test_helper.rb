@@ -17,18 +17,18 @@ class User < ActiveRecord::Base
                            :url =>  "/users/:id.:extension"
   encode_attachment_in_xml :avatar
   
-  has_attached_file        :avatar_url,
+  has_attached_file        :avatar_remote,
                            :path => File.dirname(__FILE__) + "/avatars/:id_partition/:attachment/:style.:extension",
                            :url =>  "/users/:id.:extension"
-  encode_attachment_in_xml :avatar_url, :send_urls => true, :root_url => "http://localhost/"
+  encode_attachment_in_xml :avatar_remote, :send_urls => true, :root_url => "http://localhost/"
 end
 
 module Api
   class User < ActiveResource::Base
-    self.site = "http://localhost:3000"
+    self.site = "http://localhost/"
     
     has_encoded_attachment :avatar
-    has_encoded_attachment :avatar_url
+    has_encoded_attachment :avatar_remote
     
     schema do
       string "name"

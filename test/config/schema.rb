@@ -7,10 +7,10 @@ ActiveRecord::Schema.define(:version => 0) do
     t.integer   "avatar_file_size"
     t.datetime  "avatar_updated_at"
     
-    t.string    "avatar_url_file_name"
-    t.string    "avatar_url_content_type"
-    t.integer   "avatar_url_file_size"
-    t.datetime  "avatar_url_updated_at"
+    t.string    "avatar_remote_file_name"
+    t.string    "avatar_remote_content_type"
+    t.integer   "avatar_remote_file_size"
+    t.datetime  "avatar_remote_updated_at"
     
     t.timestamps
   end

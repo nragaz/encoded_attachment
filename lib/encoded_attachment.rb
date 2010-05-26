@@ -1,7 +1,7 @@
 require 'base64'
-require 'activerecord/base'
-require 'activeresource/base'
-require 'activeresource/connection'
+require File.dirname(__FILE__) + '/activerecord/base'
+require File.dirname(__FILE__) + '/activeresource/base'
+require File.dirname(__FILE__) + '/activeresource/connection'
 
 module EncodedAttachment
   VERSION = "0.1"
