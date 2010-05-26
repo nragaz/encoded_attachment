@@ -28,7 +28,7 @@ To avoid transmitting huge XML files (particularly in index actions), you can ch
     
 <tt>:root_url</tt> is optional.
 
-You can force the file's binary data to be embedded using <tt>to_xml(:encoded_attachments => true)</tt>.
+You can force the file's binary data to be embedded using <tt>to_xml(:encode_attachments => true)</tt>.
 
 The URL will be downloaded separately by the Active Resource object using the same protocol settings as its native connection (e.g. authentication will be preserved).
 
@@ -49,7 +49,7 @@ Potential use cases include:
         end
     
         def show
-            MyModel.find(params[:id]).to_xml(:encoded_attachments => true) # sends encoded files
+            MyModel.find(params[:id]).to_xml(:encode_attachments => true) # sends encoded files
         end
     end
 </pre>
