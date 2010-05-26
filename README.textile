@@ -8,6 +8,8 @@ Adds a class method called <tt>encode_attachment_in_xml</tt> to Active Record th
 
 You can disable file generation using <tt>to_xml(:include_attachments => false)</tt>.
 
+Note that by default, the XML will *not* include Paperclip attributes such as <tt>[attachment]_file_name</tt>, <tt>[attachment]_file_size</tt>, <tt>[attachment]_content_type</tt> and <tt>[attachment]_updated_at</tt>. The file name and content type are in the XML tag as attributes. Using <tt>to_xml(:include_attachments => false)</tt> will restore these attributes to your XML.
+
 The Active Record methods will only be included if both Active Record and Paperclip are loaded.
 
 
