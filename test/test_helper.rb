@@ -16,6 +16,11 @@ class User < ActiveRecord::Base
                            :path => File.dirname(__FILE__) + "/avatars/:id_partition/:attachment/:style.:extension",
                            :url =>  "/users/:id.:extension"
   encode_attachment_in_xml :avatar
+  
+  has_attached_file        :avatar_url,
+                           :path => File.dirname(__FILE__) + "/avatars/:id_partition/:attachment/:style.:extension",
+                           :url =>  "/users/:id.:extension"
+  encode_attachment_in_xml :avatar_url, :send_urls => true, :root_url => "http://localhost/"
 end
 
 module Api
@@ -23,6 +28,7 @@ module Api
     self.site = "http://localhost:3000"
     
     has_encoded_attachment :avatar
+    has_encoded_attachment :avatar_url
     
     schema do
       string "name"
@@ -57,5 +63,13 @@ class ActiveSupport::TestCase
   
     ActiveRecord::Base.establish_connection(config[db_adapter])
     load(File.dirname(__FILE__) + "/config/schema.rb")
+  end
+  
+  def self.user_with_encoded_files
+    User.encode_attachment_in_xml :avatar
+  end
+  
+  def self.user_urls
+    User.encode_attachment_in_xml :avatar, :send_urls => true, :root_url => "http://localhost/"
   end
 end

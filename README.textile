@@ -4,14 +4,18 @@ This is the bestest and certainly the easiest way to handle file uploads/downloa
 
 h2. Active Record
 
-Adds a class method called <tt>encode_attachment_in_xml</tt> to Active Record that can be used alongside Paperclip's <tt>has_attached_file</tt> to automatically generate useful and usable binary XML tags for the attachment's original file by wrapping <tt>to_xml</tt>. These tags will not be generated on new or destroyed records (because the Paperclip file needs to be saved to disk before it is encoded). You can disable file generation using <tt>to_xml(:include_attachments => false)</tt>.
+Adds a class method called <tt>encode_attachment_in_xml</tt> to Active Record that can be used alongside Paperclip's <tt>has_attached_file</tt> to automatically generate useful and usable binary XML tags for the attachment's original file by wrapping <tt>to_xml</tt>. These tags will not be generated on new or destroyed records (because the Paperclip file needs to be saved to disk before it is encoded).
+
+You can disable file generation using <tt>to_xml(:include_attachments => false)</tt>.
 
 The Active Record methods will only be included if both Active Record and Paperclip are loaded.
 
 
 h2. Active Resource
 
-Adds a class method called <tt>has_encoded_attachment</tt> to Active Resource that generates a schema for the file's attributes and then embeds the file's binary content in <tt>to_xml</tt> if the file has been changed or the record is new. You can force embedding using <tt>to_xml(:include_files => true)</tt>. File setters include <tt>file=</tt> and <tt>file_path=</tt>. MIME types are detected based on the file name.
+Adds a class method called <tt>has_encoded_attachment</tt> to Active Resource that generates a schema for the file's attributes and then embeds the file's binary content in <tt>to_xml</tt> if the file has been changed or the record is new.
+
+You can force embedding using <tt>to_xml(:include_attachments => true)</tt>. File setters include <tt>file=</tt> and <tt>file_path=</tt>. MIME types are detected based on the file name.
 
 
 h2. Downloading Files using URLs
@@ -23,6 +27,8 @@ To avoid transmitting huge XML files (particularly in index actions), you can ch
 </pre>
     
 <tt>:root_url</tt> is optional.
+
+You can force the file's binary data to be embedded using <tt>to_xml(:encoded_attachments => true)</tt>.
 
 The URL will be downloaded separately by the Active Resource object using the same protocol settings as its native connection (e.g. authentication will be preserved).
 
@@ -43,7 +49,7 @@ Potential use cases include:
         end
     
         def show
-            MyModel.find(params[:id]).to_xml(:encoded => true) # sends encoded files
+            MyModel.find(params[:id]).to_xml(:encoded_attachments => true) # sends encoded files
         end
     end
 </pre>

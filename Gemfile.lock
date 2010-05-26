@@ -1,0 +1,90 @@
+--- 
+dependencies: 
+  activeresource: 
+    group: 
+    - :default
+    version: ">= 0"
+    require: 
+    - active_resource
+  activerecord: 
+    group: 
+    - :default
+    version: ">= 0"
+    require: 
+    - active_record
+  sqlite3-ruby: 
+    group: 
+    - :default
+    version: ">= 0"
+    require: 
+    - sqlite3
+  mime-types: 
+    group: 
+    - :default
+    version: ">= 0"
+    require: 
+    - mime/types
+  paperclip: 
+    group: 
+    - :default
+    version: ">= 0"
+  activesupport: 
+    group: 
+    - :default
+    version: ">= 0"
+    require: 
+    - active_support
+specs: 
+- builder: 
+    version: 2.1.2
+- i18n: 
+    version: 0.4.0.beta1
+- memcache-client: 
+    version: 1.8.3
+- tzinfo: 
+    version: 0.3.20
+- activesupport: 
+    version: 3.0.0.beta3
+    source: 1
+- activemodel: 
+    version: 3.0.0.beta3
+    source: 1
+- arel: 
+    version: 0.3.3
+- activerecord: 
+    version: 3.0.0.beta3
+    source: 3
+- activeresource: 
+    version: 3.0.0.beta3
+    source: 2
+- mime-types: 
+    version: "1.16"
+- paperclip: 
+    version: 2.3.2.beta1
+    source: 0
+- sqlite3-ruby: 
+    version: 1.2.5
+hash: 12360ada2663b2e66de9628f1528ae42db541e64
+sources: 
+- Git: 
+    uri: git://github.com/thoughtbot/paperclip
+    branch: rails3
+    git: git://github.com/thoughtbot/paperclip
+    ref: f0b5ac3cfcd03aac31f4c1889569f33356aa5d04
+- Git: 
+    uri: git://github.com/rails/rails
+    require: active_support
+    git: git://github.com/rails/rails
+    ref: e3549a80549326049222c0916926a906d2638490
+- Git: 
+    uri: git://github.com/rails/rails
+    require: active_resource
+    git: git://github.com/rails/rails
+    ref: e3549a80549326049222c0916926a906d2638490
+- Git: 
+    uri: git://github.com/rails/rails
+    require: active_record
+    git: git://github.com/rails/rails
+    ref: e3549a80549326049222c0916926a906d2638490
+- Rubygems: 
+    uri: http://gemcutter.org
