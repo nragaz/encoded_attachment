@@ -4,8 +4,6 @@ require File.dirname(__FILE__) + '/activeresource/base'
 require File.dirname(__FILE__) + '/activeresource/connection'
 
 module EncodedAttachment
-  VERSION = "0.1"
-  
   class << self
     def encode(attachment, style = :original)
       encode_io( File.open(attachment.path(style)) )
@@ -23,5 +21,26 @@ module EncodedAttachment
         ActiveResource::Connection.send :include, ActiveResourceConnectionMethods
       end
     end
+    
+    def setup_activerecord
+      if Object.const_defined?('Paperclip')
+        ActiveRecord::Base.send(:include, EncodedAttachment)
+      else
+        raise "Could not load EncodedAttachment::ActiveRecord because Paperclip is not available"
+      end
+    end
+    
+    def setup_activeresource
+      ActiveResource::Base.send(:include, EncodedAttachment)
+    end
   end
+end
+
+
+if Object.const_defined?('ActiveRecord')
+  EncodedAttachment.setup_activerecord
+end
+  
+if Object.const_defined?('ActiveResource')
+  EncodedAttachment.setup_activeresource
 end

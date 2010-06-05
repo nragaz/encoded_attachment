@@ -9,8 +9,6 @@ Bundler.require
 Paperclip.configure
 Paperclip::Railtie.insert
 
-require (File.dirname(__FILE__) + '/../init.rb')
-
 class User < ActiveRecord::Base
   has_attached_file        :avatar,
                            :path => File.dirname(__FILE__) + "/avatars/:id_partition/:attachment/:style.:extension",

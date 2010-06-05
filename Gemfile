@@ -1,5 +1,7 @@
 source :gemcutter
 
+gem "encoded_attachment", :path => File.expand_path("..", __FILE__)
+
 gem "mime-types",     :require => 'mime/types'
 gem "sqlite3-ruby",   :require => 'sqlite3'
 
