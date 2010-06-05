@@ -36,11 +36,5 @@ module EncodedAttachment
   end
 end
 
-
-if Object.const_defined?('ActiveRecord')
-  EncodedAttachment.setup_activerecord
-end
-  
-if Object.const_defined?('ActiveResource')
-  EncodedAttachment.setup_activeresource
-end
+EncodedAttachment.setup_activerecord if Object.const_defined?('ActiveRecord')
+EncodedAttachment.setup_activeresource if Object.const_defined?('ActiveResource')
