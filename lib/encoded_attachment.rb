@@ -38,10 +38,18 @@ end
 
 # Initialization
 if defined?(Rails::Railtie)
-  ActiveSupport.on_load(:active_record) { EncodedAttachment.setup_activerecord }
-  ActiveSupport.on_load(:active_resource) { EncodedAttachment.setup_activeresource }
+  ActiveSupport.on_load(:active_record) do
+    p "Setting ActiveRecord initialization hook..."
+    EncodedAttachment.setup_activerecord
+  end
+  
+  ActiveSupport.on_load(:active_resource) do
+    p "Setting ActiveResource initialization hook..."
+    EncodedAttachment.setup_activeresource
+  end
 else
   # Load right away if required outside of Rails initialization
+  p "Required encoded_attachment..."
   EncodedAttachment.setup_activerecord if Object.const_defined?('ActiveRecord')
   EncodedAttachment.setup_activeresource if Object.const_defined?('ActiveResource')
 end
