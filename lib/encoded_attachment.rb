@@ -14,24 +14,17 @@ module EncodedAttachment
       Base64.encode64(io.read)
     end
     
-    def included(base)
-      base.extend ActiveRecordClassMethods if base.to_s == "ActiveRecord::Base"
-      if base.to_s == "ActiveResource::Base"
-        base.extend ActiveResourceClassMethods
-        ActiveResource::Connection.send :include, ActiveResourceConnectionMethods
-      end
-    end
-    
     def setup_activerecord
-      if Object.const_defined?('Paperclip')
-        ActiveRecord::Base.send(:include, EncodedAttachment)
+      if defined?(Paperclip)
+        ActiveRecord::Base.extend ActiveRecordClassMethods
       else
-        raise "Could not load EncodedAttachment::ActiveRecord because Paperclip is not available"
+        raise "Could not include EncodedAttachment methods in ActiveRecord because Paperclip is not loaded"
       end
     end
     
     def setup_activeresource
-      ActiveResource::Base.send(:include, EncodedAttachment)
+      ActiveResource::Base.extend ActiveResourceClassMethods
+      ActiveResource::Connection.send :include, ActiveResourceConnectionMethods
     end
   end
 end
@@ -39,17 +32,14 @@ end
 # Initialization
 if defined?(Rails::Railtie)
   ActiveSupport.on_load(:active_record) do
-    p "Setting ActiveRecord initialization hook..."
     EncodedAttachment.setup_activerecord
   end
   
   ActiveSupport.on_load(:active_resource) do
-    p "Setting ActiveResource initialization hook..."
     EncodedAttachment.setup_activeresource
   end
 else
   # Load right away if required outside of Rails initialization
-  p "Required encoded_attachment..."
-  EncodedAttachment.setup_activerecord if Object.const_defined?('ActiveRecord')
-  EncodedAttachment.setup_activeresource if Object.const_defined?('ActiveResource')
+  EncodedAttachment.setup_activerecord if defined?(ActiveRecord)
+  EncodedAttachment.setup_activeresource if defined?(ActiveResource)
 end
