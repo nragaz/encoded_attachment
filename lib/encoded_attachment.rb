@@ -1,7 +1,4 @@
 require 'base64'
-require File.dirname(__FILE__) + '/activerecord/base'
-require File.dirname(__FILE__) + '/activeresource/base'
-require File.dirname(__FILE__) + '/activeresource/connection'
 
 module EncodedAttachment
   class << self
@@ -15,14 +12,13 @@ module EncodedAttachment
     end
     
     def setup_activerecord
-      if defined?(Paperclip)
-        ActiveRecord::Base.extend ActiveRecordClassMethods
-      else
-        raise "Could not include EncodedAttachment methods in ActiveRecord because Paperclip is not loaded"
-      end
+      require File.dirname(__FILE__) + '/activerecord/base'
+      ActiveRecord::Base.extend ActiveRecordClassMethods
     end
     
     def setup_activeresource
+      require File.dirname(__FILE__) + '/activeresource/base'
+      require File.dirname(__FILE__) + '/activeresource/connection'
       ActiveResource::Base.extend ActiveResourceClassMethods
       ActiveResource::Connection.send :include, ActiveResourceConnectionMethods
     end

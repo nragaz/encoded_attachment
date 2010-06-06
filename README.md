@@ -1,21 +1,37 @@
 EncodedAttachment
 =================
 
-This is the bestest and certainly the easiest way to handle file uploads/downloads to Paperclip-using Active Record-backed resources using Active Resource.
+This is the bestest and certainly the easiest way to handle file uploads/downloads to [Paperclip](http://github.com/thoughtbot/paperclip)-using Active Record-backed resources using Active Resource.
 
 Rather than trying to create a multipart form submission, it just embeds the file's binary data in the Active Record model's <tt>to_xml</tt>. You can also embed binary data into XML to POST or PUT using Active Resource. These tags will automatically be parsed by Active Record and Active Resource to create files.
 
 
+Usage
+-----
+
+In a Rails application:
+
+    # Gemfile
+    gem "encoded_attachment", :git => "git://github.com/nragaz/encoded_attachment"
+    
+This will load the class methods into both ActiveRecord and ActiveResource. Nothing will really "happen" unless you use the methods described below in your models.
+
+Note that the ActiveRecord code is designed to be used with [Paperclip](http://github.com/thoughtbot/paperclip).
+
+Outside of Rails, the gem can be required directly. It will load itself into ActiveRecord::Base and/or ActiveResource::Base if they have already been loaded. (You can manually include the needed methods using <tt>EncodedAttachment.setup_activerecord</tt> and <tt>EncodedAttachment.setup_activeresource</tt> if you really want to require this gem first.)
+
+
+Functionality
+=============
+
 Active Record
 -------------
 
-Adds a class method called <tt>encode_attachment_in_xml</tt> to Active Record that can be used alongside Paperclip's <tt>has_attached_file</tt> to automatically generate useful and usable binary XML tags for the attachment's original file by wrapping <tt>to_xml</tt>. These tags will not be generated on new or destroyed records (because the Paperclip file needs to be saved to disk before it is encoded).
+Adds a class method called <tt>encode_attachment_in_xml</tt> to Active Record that can be used alongside Paperclip's <tt>has_attached_file</tt> to automatically generate useful and usable binary XML tags for the attachment's original file by wrapping <tt>to_xml</tt>.
 
-You can disable file generation using <tt>to_xml(:include_attachments => false)</tt>.
+These tags will not be generated on new or destroyed records (because the Paperclip file needs to be saved to disk before it is encoded). You can disable file generation at any time using <tt>to_xml(:include_attachments => false)</tt>.
 
 Note that by default, the XML will *not* include Paperclip attributes such as <tt>attachment_file_name</tt>, <tt>attachment_file_size</tt>, <tt>attachment_content_type</tt> and <tt>attachment_updated_at</tt>. The file name and content type are in the XML tag as attributes. Using <tt>to_xml(:include_attachments => false)</tt> will restore these attributes to your XML.
-
-The Active Record methods will only be included if both Active Record and Paperclip are loaded.
 
 
 Active Resource
@@ -65,7 +81,6 @@ Example
 
 In Active Record:
 
-
     class MyModel < ActiveRecord::Base
         has_attached_file        :pdf
         encode_attachment_in_xml :pdf
@@ -76,7 +91,6 @@ In Active Record:
 
 
 In Active Resource:
-
 
     class MyModelResource < ActiveResource::Base
         self.element_name = "my_model"
@@ -91,4 +105,3 @@ In Active Resource:
     my_model_resource.pdf = File.open('example-downloaded.pdf')
     my_model_resource.pdf_file_name # => "example_downloaded.pdf"
     my_model_resource.pdf_content_type # => "application/pdf"
-
