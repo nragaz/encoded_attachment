@@ -36,5 +36,12 @@ module EncodedAttachment
   end
 end
 
-EncodedAttachment.setup_activerecord if Object.const_defined?('ActiveRecord')
-EncodedAttachment.setup_activeresource if Object.const_defined?('ActiveResource')
+# Initialization
+if defined?(Rails::Railtie)
+  ActiveSupport.on_load(:active_record) { EncodedAttachment.setup_activerecord }
+  ActiveSupport.on_load(:active_resource) { EncodedAttachment.setup_activeresource }
+else
+  # Load right away if required outside of Rails initialization
+  EncodedAttachment.setup_activerecord if Object.const_defined?('ActiveRecord')
+  EncodedAttachment.setup_activeresource if Object.const_defined?('ActiveResource')
+end
