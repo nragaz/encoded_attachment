@@ -7,8 +7,8 @@ Gem::Specification.new do |s|
   s.authors     = ["Nick Ragaz"]
   s.email       = ["nick.ragaz@gmail.com"]
   s.homepage    = "http://github.com/nragaz/encoded_attachment"
-  s.summary     = "Handles downloading and uploading Paperclip attachments using Active Resource"
-  s.description = "Adds methods to ActiveRecord::Base and ActiveResource::Base to transmit file attachments via REST, either as encoded binary or via a separate URL"
+  s.summary     = "Handles downloading and uploading Paperclip attachments using Active Record and Active Resource"
+  s.description = "Adds methods to ActiveRecord::Base and ActiveResource::Base to transmit file attachments via REST, either as binary tags in XML or via a separate URL"
 
   s.required_rubygems_version = ">= 1.3.6"
   s.rubyforge_project         = "encoded_attachment"
