@@ -34,6 +34,12 @@ if defined?(Rails::Railtie)
   ActiveSupport.on_load(:active_resource) do
     EncodedAttachment.setup_activeresource
   end
+  
+  ActiveSupport.on_load(:before_initialize) do
+    # workaround until above load hook works
+    EncodedAttachment.setup_activeresource \
+      unless !defined?(ActiveResource) || ActiveResource::Base.methods.include?('has_encoded_attachment')
+  end
 else
   # Load right away if required outside of Rails initialization
   EncodedAttachment.setup_activerecord if defined?(ActiveRecord)
