@@ -16,7 +16,7 @@ module EncodedAttachment
       end
       
       define_method "to_xml_with_encoded_#{name}" do |*args|
-        # You can exclude file tags completely by using :include_files => false
+        # You can exclude file tags completely by using :include_attachments => false
         # If :send_urls => true, force file encoding using :encode => true
         options, block = args
         
