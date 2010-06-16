@@ -1,3 +1,3 @@
 module EncodedAttachment
-  VERSION = "0.1.5"
+  VERSION = "0.1.5" unless defined? EncodedAttachment::VERSION
 end
