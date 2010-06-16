@@ -74,8 +74,9 @@ module EncodedAttachment
         changed = (changed.nil? || changed) ? true : false
         if file_url
           url = URI.parse(file_url.to_s)
+          send "#{name}_content_type=", MIME::Types.type_for(File.basename(url.path)).first.content_type
           send "#{name}=",              StringIO.new(connection.get_attachment(url.path,
-                                          'Accept' => send("#{name}_content_type")).body), changed
+                                          'Accept' => send("#{name}_content_type"))), changed
           send "#{name}_file_name=",    File.basename(url.path)
           send "#{name}_content_type=", MIME::Types.type_for(File.basename(url.path)).first.content_type
         else
